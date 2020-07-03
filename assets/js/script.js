@@ -39,7 +39,6 @@ var loadTasks = function() {
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
-    console.log(list, arr);
     // then loop over sub-array
     arr.forEach(function(task) {
       createTask(task.text, task.date, list);
@@ -158,10 +157,8 @@ $(".list-group").on("change", "input[type='text']", function(){
 var auditTask=function(taskEl){
   //get date from task element
   var date = $(taskEl).find("span").text().trim();
-
   // convert to moment object at 5:00pm
   var time = moment(date, "L").set("hour", 17);
-
   //remove any old classes from element
   $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
 
@@ -171,7 +168,8 @@ var auditTask=function(taskEl){
   }
   else if (Math.abs(moment().diff(time, "days"))<=2){
     $(taskEl).addClass("list-group-item-warning");
-  }
+  } 
+  console.log(time);
 };
 
 // modal was triggered
@@ -187,7 +185,7 @@ $("#task-form-modal").on("shown.bs.modal", function() {
 });
 
 // save button in modal was clicked
-$("#task-form-modal .btn-primary").click(function() {
+$("#task-form-modal .btn-save").click(function() {
   // get form values
   var taskText = $("#modalTaskDescription").val();
   var taskDate = $("#modalDueDate").val();
@@ -215,15 +213,21 @@ $(".card .list-group").sortable({
   tolerance: "pointer",
   helper: "clone",
   activate: function(event){
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
     console.log("activate", this);
   },
   deactivate: function(event){
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
     console.log("deactivate", this);
   },
   over: function(event){
+    $(event.target).addClass("dropover-active");
     console.log("over", event.target);
   },
   out: function(event){
+    $(event.target).removeClass("dropover-active");
     console.log("out", event.target);
   },
   update: function(event){
@@ -263,14 +267,14 @@ $("#trash").droppable({
   accept: ".card .list-group-item", 
   tolerace: "touch",
   drop: function(event, ui){
+    $(".bottom-trash").removeClass("bottom-trash-active");
     ui.draggable.remove();
-    console.log("drop");
   },
   over:function(event, ui){
-    console.log("over");
+    $(".bottom-trash").addClass("bottom-trash-active");
   },
   out:function(event, ui){
-    console.log("out")
+    $(".bottom-trash").removeClass("bottom-trash-active");
   },
 });
 
@@ -285,3 +289,9 @@ $("#remove-tasks").on("click", function() {
 
 // load tasks for the first time
 loadTasks();
+
+setInterval(function(){
+  $(".card .list-group-item").each(function(el){
+  auditTask(el);
+});
+}, (100*60)*30);
